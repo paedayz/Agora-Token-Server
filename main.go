@@ -14,10 +14,12 @@ import (
 var appID, appCertificate string
 
 func main() {
-	appIDEnv, appIDExists := os.LookupEnv("APP_ID")
-	appCertEnv, appCertExists := os.LookupEnv("APP_CERTIFICATE")
+	appIDEnv := ""
+	appCertEnv := ""
+	appIDEnv = os.Getenv("APP_ID")
+	appCertEnv = os.Getenv("APP_CERTIFICATE")
 
-	if !appIDExists || !appCertExists {
+	if appIDEnv != "" || appCertEnv != "" {
 		log.Fatal("FATAL ERROR: ENV not properly configured, check APP_ID and APP_CERTIFICATE")
 	} else {
 		appID = appIDEnv
@@ -54,7 +56,7 @@ func getRtcToken(c *gin.Context) {
 		return
 	}
 
-	rtcToken, tokenErr := generateRtcToken(channelName, tokentype, uidStr, role, expireTimestamp)
+	rtcToken, tokenErr := generateRtcToken(channelName, uidStr, tokentype, role, expireTimestamp)
 
 	if tokenErr != nil {
 		log.Println(tokenErr) // token failed to generate
@@ -84,7 +86,7 @@ func parseRtcParams(c *gin.Context) (channelName, tokentype, uidStr string, role
 	// Get param values
 	channelName = c.Param("channelName")
 	roleStr := c.Param("role")
-	tokentype = c.Param("tokentype")
+	tokentype = c.Param("tokenType")
 	uidStr = c.Param("uid")
 	expireTime := c.DefaultQuery("expiry", "3600")
 
@@ -109,9 +111,9 @@ func parseRtcParams(c *gin.Context) (channelName, tokentype, uidStr string, role
 	return channelName, tokentype, uidStr, role, expireTimestamp, err
 }
 
-func parseRtmParams(c *gin.Context) (uidStr string, expireTimestamp uint32, err error) {
+// func parseRtmParams(c *gin.Context) (uidStr string, expireTimestamp uint32, err error) {
 
-}
+// }
 
 func generateRtcToken(channelName, uidStr, tokentype string, role rtctokenbuilder.Role, expireTimestamp uint32) (rtcToken string, err error) {
 	if tokentype == "userAccount" {
