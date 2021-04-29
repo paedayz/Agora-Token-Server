@@ -37,7 +37,36 @@ func main() {
 }
 
 func getRtcToken(c *gin.Context) {
+	log.Printf("rtc token\n")
 
+	// Get param values
+	channelName, tokentype, uidStr, role, expireTimestamp, err := parseRtcParams(c)
+
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatusJSON(400, gin.H{
+			"message": "Error Generating RTC token: " + err.Error(),
+			"status":  400,
+		})
+		return
+	}
+
+	rtcToken, tokenErr := generateRtcToken(channelName, tokentype, uidStr, role, expireTimestamp)
+
+	if tokenErr != nil {
+		log.Println(tokenErr) // token failed to generate
+		c.Error(tokenErr)
+		errMsg := "Error Generating RTC token - " + tokenErr.Error()
+		c.AbortWithStatusJSON(400, gin.H{
+			"status": 400,
+			"error":  errMsg,
+		})
+	} else {
+		log.Println("RTC Token generated")
+		c.JSON(200, gin.H{
+			"rtcToken": rtcToken,
+		})
+	}
 }
 
 func getRtmToken(c *gin.Context) {
