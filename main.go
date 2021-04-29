@@ -108,7 +108,46 @@ func getRtmToken(c *gin.Context) {
 }
 
 func getBothTokens(c *gin.Context) {
+	log.Printf("dual token\n")
+	// get rtc param values
+	channelName, tokentype, uidStr, role, expireTimestamp, rtcParamErr := parseRtcParams(c)
 
+	if rtcParamErr != nil {
+		c.Error(rtcParamErr)
+		c.AbortWithStatusJSON(400, gin.H{
+			"message": "Error Generating RTC token: " + rtcParamErr.Error(),
+			"status":  400,
+		})
+		return
+	}
+	// generate the rtcToken
+	rtcToken, rtcTokenErr := generateRtcToken(channelName, uidStr, tokentype, role, expireTimestamp)
+	// generate rtmToken
+	rtmToken, rtmTokenErr := rtmtokenbuilder.BuildToken(appID, appCertificate, uidStr, rtmtokenbuilder.RoleRtmUser, expireTimestamp)
+
+	if rtcTokenErr != nil {
+		log.Println(rtcTokenErr) // token failed to generate
+		c.Error(rtcTokenErr)
+		errMsg := "Error Generating RTC token - " + rtcTokenErr.Error()
+		c.AbortWithStatusJSON(400, gin.H{
+			"status": 400,
+			"error":  errMsg,
+		})
+	} else if rtmTokenErr != nil {
+		log.Println(rtmTokenErr) // token failed to generate
+		c.Error(rtmTokenErr)
+		errMsg := "Error Generating RTC token - " + rtmTokenErr.Error()
+		c.AbortWithStatusJSON(400, gin.H{
+			"status": 400,
+			"error":  errMsg,
+		})
+	} else {
+		log.Println("RTC Token generated")
+		c.JSON(200, gin.H{
+			"rtcToken": rtcToken,
+			"rtmToken": rtmToken,
+		})
+	}
 }
 
 func parseRtcParams(c *gin.Context) (channelName, tokentype, uidStr string, role rtctokenbuilder.Role, expireTimestamp uint32, err error) {
