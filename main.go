@@ -214,7 +214,7 @@ func generateRtcToken(channelName, uidStr, tokentype string, role rtctokenbuilde
 
 		uid := uint32(uid64) // convert uid from uint64 to uint32
 		log.Printf("Building Token with uid: %d\n", uid)
-		rtcToken, err = rtctokenbuilder.BuildTokenWithUserAccount(appID, appCertificate, channelName, uidStr, role, expireTimestamp)
+		rtcToken, err = rtctokenbuilder.BuildTokenWithUID(appID, appCertificate, channelName, uid, role, expireTimestamp)
 		return rtcToken, err
 	} else {
 		err = fmt.Errorf("failed to generate RTC token for Unknown Tokentype: %s", tokentype)
