@@ -114,5 +114,25 @@ func parseRtmParams(c *gin.Context) (uidStr string, expireTimestamp uint32, err 
 }
 
 func generateRtcToken(channelName, uidStr, tokentype string, role rtctokenbuilder.Role, expireTimestamp uint32) (rtcToken string, err error) {
+	if tokentype == "userAccount" {
+		log.Printf("Building Token with userAcoount: %s\n", uidStr)
+		rtcToken, err = rtctokenbuilder.BuildTokenWithUserAccount(appID, appCertificate, channelName, uidStr, role, expireTimestamp)
+		return rtcToken, err
+	} else if tokentype == "uid" {
+		uid64, parseErr := strconv.ParseUint(uidStr, 10, 64)
+		// Check if conversion fails
+		if parseErr != nil {
+			err = fmt.Errorf("failed to parse uidStr: %s, to uint causing error: %s", uidStr, parseErr)
+			return "", err
+		}
 
+		uid := uint32(uid64) // convert uid from uint64 to uint32
+		log.Printf("Building Token with uid: %d\n", uid)
+		rtcToken, err = rtctokenbuilder.BuildTokenWithUserAccount(appID, appCertificate, channelName, uidStr, role, expireTimestamp)
+		return rtcToken, err
+	} else {
+		err = fmt.Errorf("failed to generate RTC token for Unknown Tokentype: %s", tokentype)
+		log.Println(err)
+		return "", err
+	}
 }
