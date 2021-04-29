@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/AgoraIO-Community/go-tokenbuilder/rtctokenbuilder"
+	"github.com/AgoraIO-Community/go-tokenbuilder/rtmtokenbuilder"
 	"github.com/gin-gonic/gin"
 )
 
@@ -75,7 +76,35 @@ func getRtcToken(c *gin.Context) {
 }
 
 func getRtmToken(c *gin.Context) {
+	log.Printf("rtm token\n")
+	// get param values
+	uidStr, expireTimestamp, err := parseRtmParams(c)
 
+	if err != nil {
+		c.Error(err)
+		c.AbortWithStatusJSON(400, gin.H{
+			"message": "Error Generating RTC token: " + err.Error(),
+			"status":  400,
+		})
+		return
+	}
+
+	rtmToken, tokenErr := rtmtokenbuilder.BuildToken(appID, appCertificate, uidStr, rtmtokenbuilder.RoleRtmUser, expireTimestamp)
+
+	if tokenErr != nil {
+		log.Println(err) // token failed to generate
+		c.Error(err)
+		errMsg := "Error Generating RTM token: " + tokenErr.Error()
+		c.AbortWithStatusJSON(400, gin.H{
+			"error":  errMsg,
+			"status": 400,
+		})
+	} else {
+		log.Println("RTM Token generated")
+		c.JSON(200, gin.H{
+			"rtmToken": rtmToken,
+		})
+	}
 }
 
 func getBothTokens(c *gin.Context) {
